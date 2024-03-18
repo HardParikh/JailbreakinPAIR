@@ -62,7 +62,10 @@ class AttackLM():
         - List of generated outputs (dictionaries) or None for failed generations.
         """
         
-        assert len(convs_list) == len(prompts_list), "Mismatch between number of conversations and prompts."
+        # assert len(convs_list) == len(prompts_list), "Mismatch between number of conversations and prompts."
+        req_len=min(len(convs_list),len(prompts_list))
+        convs_list=convs_list[:req_len]
+        prompts_list=prompts_list[:req_len]
         
         batchsize = len(convs_list)
         indices_to_regenerate = list(range(batchsize))
@@ -178,22 +181,18 @@ def load_indiv_model(model_name, device=None):
     elif model_name in ["palm-2"]:
         lm = PaLM(model_name)
     else:
-        model = AutoModelForCausalLM.from_pretrained(
-                model_path, 
-                torch_dtype=torch.float16,
-                low_cpu_mem_usage=True,device_map="auto").eval()
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_path,
-            use_fast=False
-        ) 
-
-        if 'llama-2' in model_path.lower():
-            tokenizer.pad_token = tokenizer.unk_token
-            tokenizer.padding_side = 'left'
-        if 'vicuna' in model_path.lower():
+        if model_name == "vicuna":
+            tokenizer = AutoTokenizer.from_pretrained("lmsys/vicuna-13b-v1.5")
             tokenizer.pad_token = tokenizer.eos_token
             tokenizer.padding_side = 'left'
+            model = AutoModelForCausalLM.from_pretrained("lmsys/vicuna-13b-v1.5", torch_dtype=torch.float16, low_cpu_mem_usage=True,device_map="auto")
+        
+        elif model_name == "llama-2":
+            tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
+            tokenizer.pad_token = tokenizer.unk_token
+            tokenizer.padding_side = 'left'
+            model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf", torch_dtype=torch.float16, low_cpu_mem_usage=True,device_map="auto")
+
         if not tokenizer.pad_token:
             tokenizer.pad_token = tokenizer.eos_token
 
@@ -234,7 +233,3 @@ def get_model_path_and_template(model_name):
     }
     path, template = full_model_dict[model_name]["path"], full_model_dict[model_name]["template"]
     return path, template
-
-
-
-    
