@@ -61,8 +61,8 @@ class HuggingFace(LanguageModel):
         outputs_list = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)
 
         for key in inputs:
-            inputs[key].to('cpu')
-        output_ids.to('cpu')
+            inputs[key].to('cuda')
+        output_ids.to('cuda')
         del inputs, output_ids
         gc.collect()
         torch.cuda.empty_cache()
@@ -83,7 +83,7 @@ class GPT(LanguageModel):
     API_QUERY_SLEEP = 0.5
     API_MAX_RETRY = 5
     API_TIMEOUT = 20
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+    openai.api_key = "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"
 
     def generate(self, conv: List[Dict], 
                 max_n_tokens: int, 
