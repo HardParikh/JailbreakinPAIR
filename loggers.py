@@ -6,7 +6,6 @@ import pandas as pd
 
 
 class WandBLogger:
-    """WandB logger."""
 
     def __init__(self, args, system_prompt):
         self.logger = wandb.init(
